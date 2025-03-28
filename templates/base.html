@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trust Fund Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --education-color: #4361ee;
+            --healthcare-color: #f72585;
+            --food-color: #2ecc71;
+            --shelter-color: #f7b801;
+            --emergency-color: #e63946;
+            
+            --education-light: rgba(67, 97, 238, 0.1);
+            --healthcare-light: rgba(247, 37, 133, 0.1);
+            --food-light: rgba(46, 204, 113, 0.1);
+            --shelter-light: rgba(247, 184, 1, 0.1);
+            --emergency-light: rgba(230, 57, 70, 0.1);
+        }
+        
+        body { background-color: #f8f9fa; }
+        
+        .navbar { 
+            background: linear-gradient(135deg, var(--education-color), var(--healthcare-color));
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .navbar-brand, .nav-link { 
+            color: white !important;
+            font-weight: 500;
+        }
+        
+        .card { 
+            margin-bottom: 20px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border: none;
+            border-radius: 10px;
+            transition: transform 0.2s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .category-card { 
+            border-left: 4px solid; 
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .category-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            opacity: 0.1;
+            z-index: 0;
+        }
+        
+        .category-card .card-body {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .education { 
+            border-color: var(--education-color);
+        }
+        .education::before {
+            background-color: var(--education-color);
+        }
+        .education .card-title {
+            color: var(--education-color);
+        }
+        
+        .healthcare { 
+            border-color: var(--healthcare-color);
+        }
+        .healthcare::before {
+            background-color: var(--healthcare-color);
+        }
+        .healthcare .card-title {
+            color: var(--healthcare-color);
+        }
+        
+        .food { 
+            border-color: var(--food-color);
+        }
+        .food::before {
+            background-color: var(--food-color);
+        }
+        .food .card-title {
+            color: var(--food-color);
+        }
+        
+        .shelter { 
+            border-color: var(--shelter-color);
+        }
+        .shelter::before {
+            background-color: var(--shelter-color);
+        }
+        .shelter .card-title {
+            color: var(--shelter-color);
+        }
+        
+        .emergency { 
+            border-color: var(--emergency-color);
+        }
+        .emergency::before {
+            background-color: var(--emergency-color);
+        }
+        .emergency .card-title {
+            color: var(--emergency-color);
+        }
+        
+        .btn-education {
+            background-color: var(--education-color);
+            border-color: var(--education-color);
+            color: white;
+        }
+        
+        .btn-healthcare {
+            background-color: var(--healthcare-color);
+            border-color: var(--healthcare-color);
+            color: white;
+        }
+        
+        .btn-food {
+            background-color: var(--food-color);
+            border-color: var(--food-color);
+            color: white;
+        }
+        
+        .btn-shelter {
+            background-color: var(--shelter-color);
+            border-color: var(--shelter-color);
+            color: white;
+        }
+        
+        .btn-emergency {
+            background-color: var(--emergency-color);
+            border-color: var(--emergency-color);
+            color: white;
+        }
+        
+        .stats-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        }
+        
+        .table thead th {
+            background-color: #f8f9fa;
+            border-top: none;
+        }
+        
+        .alert {
+            border-radius: 10px;
+            border: none;
+        }
+        
+        .list-group-item {
+            border-left: 4px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .list-group-item.education { border-left-color: var(--education-color); background-color: var(--education-light); }
+        .list-group-item.healthcare { border-left-color: var(--healthcare-color); background-color: var(--healthcare-light); }
+        .list-group-item.food { border-left-color: var(--food-color); background-color: var(--food-light); }
+        .list-group-item.shelter { border-left-color: var(--shelter-color); background-color: var(--shelter-light); }
+        .list-group-item.emergency { border-left-color: var(--emergency-color); background-color: var(--emergency-light); }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">Trust Fund</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('donate') }}">Donate</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('distribute') }}">Distribute</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category if category != 'message' else 'info' }} alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 

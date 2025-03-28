@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Add prominent action buttons at the top -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <a href="{{ url_for('donate') }}" class="btn btn-education btn-lg w-100 py-3 shadow">
+            <i class="fas fa-heart fa-2x mb-2"></i>
+            <br>Make a Donation
+        </a>
+    </div>
+    <div class="col-md-6">
+        <a href="{{ url_for('distribute') }}" class="btn btn-healthcare btn-lg w-100 py-3 shadow">
+            <i class="fas fa-hand-holding-heart fa-2x mb-2"></i>
+            <br>Record Distribution
+        </a>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card stats-card education">
+            <div class="card-body">
+                <h5 class="card-title">Total Donations</h5>
+                <h2 style="color: var(--education-color)">₹{{ "%.2f"|format(total_donations) }}</h2>
+                <a href="{{ url_for('donate') }}" class="btn btn-education mt-2">
+                    <i class="fas fa-plus me-2"></i>Add Donation
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stats-card healthcare">
+            <div class="card-body">
+                <h5 class="card-title">Total Distributions</h5>
+                <h2 style="color: var(--healthcare-color)">₹{{ "%.2f"|format(total_distributions) }}</h2>
+                <a href="{{ url_for('distribute') }}" class="btn btn-healthcare mt-2">
+                    <i class="fas fa-plus me-2"></i>Add Distribution
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stats-card food">
+            <div class="card-body">
+                <h5 class="card-title">Current Balance</h5>
+                <h2 style="color: var(--food-color)">₹{{ "%.2f"|format(balance) }}</h2>
+                <button class="btn btn-food mt-2" onclick="refreshStats()">
+                    <i class="fas fa-sync-alt me-2"></i>Refresh
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Category-wise Statistics</h5>
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Recent Activity</h5>
+                <div class="list-group">
+                    {% for donation in donations[:5] %}
+                    <div class="list-group-item {{ donation.category }}">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">Donation from {{ donation.name }}</h6>
+                            <small>{{ donation.date.strftime('%Y-%m-%d') }}</small>
+                        </div>
+                        <p class="mb-1">₹{{ "%.2f"|format(donation.amount) }} - {{ donation.category }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    {% for category, data in categories.items() %}
+    <div class="col-md-4 mb-3">
+        <div class="card category-card {{ category }}">
+            <div class="card-body">
+                <h5 class="card-title text-capitalize">{{ category }}</h5>
+                <p class="mb-1">Donations: ₹{{ "%.2f"|format(data.donations) }}</p>
+                <p class="mb-1">Distributions: ₹{{ "%.2f"|format(data.distributions) }}</p>
+                <p class="mb-0">Balance: ₹{{ "%.2f"|format(data.donations - data.distributions) }}</p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Recent Donations</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Amount</th>
+                                <th>Category</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for donation in donations[:5] %}
+                            <tr>
+                                <td>{{ donation.name }}</td>
+                                <td>₹{{ "%.2f"|format(donation.amount) }}</td>
+                                <td>{{ donation.category }}</td>
+                                <td>{{ donation.date.strftime('%Y-%m-%d') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Recent Distributions</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Beneficiary</th>
+                                <th>Amount</th>
+                                <th>Category</th>
+                                <th>Payment Mode</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for distribution in distributions[:5] %}
+                            <tr>
+                                <td>{{ distribution.beneficiary_name }}</td>
+                                <td>₹{{ "%.2f"|format(distribution.amount) }}</td>
+                                <td>{{ distribution.category }}</td>
+                                <td>{{ distribution.payment_mode|replace('_', ' ')|title }}</td>
+                                <td>{{ distribution.date.strftime('%Y-%m-%d') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('categoryChart').getContext('2d');
+    const categoryData = JSON.parse('{{ categories|tojson|safe }}');
+    
+    const categoryColors = {
+        education: '#4361ee',
+        healthcare: '#f72585',
+        food: '#2ecc71',
+        shelter: '#f7b801',
+        emergency: '#e63946'
+    };
+    
+    const labels = Object.keys(categoryData);
+    const donationData = labels.map(cat => categoryData[cat].donations);
+    const distributionData = labels.map(cat => categoryData[cat].distributions);
+    
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Donations',
+                data: donationData,
+                backgroundColor: labels.map(cat => `${categoryColors[cat]}40`),
+                borderColor: labels.map(cat => categoryColors[cat]),
+                borderWidth: 1
+            }, {
+                label: 'Distributions',
+                data: distributionData,
+                backgroundColor: labels.map(cat => `${categoryColors[cat]}80`),
+                borderColor: labels.map(cat => categoryColors[cat]),
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top'
+                }
+            }
+        }
+    });
+});
+
+function refreshStats() {
+    fetch('/api/stats')
+        .then(response => response.json())
+        .then(data => {
+            document.querySelector('.education h2').textContent = '₹' + data.total_donations.toFixed(2);
+            document.querySelector('.food h2').textContent = '₹' + data.balance.toFixed(2);
+            document.querySelector('.healthcare h2').textContent = '₹' + data.total_distributions.toFixed(2);
+        });
+}
+</script>
+{% endblock %} 
